@@ -48,7 +48,7 @@ public class Main {
         List<Event> solicitari = new ArrayList<>();
         List<Recenzie> recenzii = new ArrayList<>();
         MainService.Initializare(users, events);
-        int actiune = 15;
+        int actiune = 11;
         User user = MainService.LoggedOut(scanner, users);
         if(user == null)
             return;
@@ -91,20 +91,23 @@ public class Main {
                     MainService.afiseazaNotificariUser(user);
                     break;
                 case 10:
-                    MainService.adaugaEvent(scanner, events);
-                    break;
-                case 11:
-                    MainService.anuleazaEvent(scanner, events, users, user);
-                    break;
-                case 12:
-                    MainService.gestioneazaSolicitari(scanner, solicitari, events);
-                    break;
-                case 13:
-                    MainService.trimiteNotificare(scanner, user, users);
-                    break;
-                case 14:
                     user = MainService.LoggedOut(scanner, users);
                     break;
+                case 11:
+                    return;
+                case 12:
+                    MainService.adaugaEvent(scanner, events);
+                    break;
+                case 13:
+                    MainService.anuleazaEvent(scanner, events, users, user);
+                    break;
+                case 14:
+                    MainService.gestioneazaSolicitari(scanner, solicitari, events);
+                    break;
+                case 15:
+                    MainService.trimiteNotificare(scanner, user, users);
+                    break;
+
                 default:
                     return;
             }

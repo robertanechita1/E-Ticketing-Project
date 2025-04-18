@@ -94,7 +94,13 @@ public class MainService {
 
         System.out.print("Data (format yyyy-MM-dd): ");
         String dataStr = scanner.next();
-        LocalDate data = LocalDate.parse(dataStr);
+        LocalDate data = null;
+        try {
+            data = LocalDate.parse(dataStr);
+        } catch (InputMismatchException e) {
+            System.out.println("Eroare: trebuie sa introduci o data in acel format!");
+            scanner.nextLine();
+        }
 
         System.out.print("Descriere: ");
         scanner.nextLine(); // consum \n de la inputul anterior
@@ -104,14 +110,26 @@ public class MainService {
         String locatie = scanner.nextLine();
 
         System.out.print("Capacitatea totala: ");
-        int capacitate = scanner.nextInt();
+        int capacitate = 0;
+        try {
+            capacitate = scanner.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Eroare: trebuie sa introduci un numar intreg!");
+            scanner.nextLine();
+        }
 
         System.out.print("Organizator: ");
         scanner.nextLine(); // consum \n de la int ul ant
         String organizator = scanner.nextLine();
 
         System.out.print("Pretul unui bilet standard: ");
-        double pret = scanner.nextDouble();
+        double pret = 0;
+        try {
+            pret = scanner.nextDouble();
+        } catch (InputMismatchException e) {
+            System.out.println("Eroare: trebuie sa introduci un numar intreg!");
+            scanner.nextLine();
+        }
 
         Event event = new Event(nume, data, descriere, locatie, capacitate, organizator);
         event.setPrice(pret);
@@ -123,6 +141,8 @@ public class MainService {
 
     public static void afiseazaBileteUser(User user) {
         System.out.println("Biletele lui " + user.getNume() + ":");
+        if(user.getBilete().isEmpty())
+            System.out.println("Nu aveti bilete disponibile.");
         for (Bilet b : user.getBilete()) {
             System.out.println(b);
         }
@@ -130,6 +150,8 @@ public class MainService {
 
     public static void afiseazaNotificariUser(User user) {
         System.out.println("Notificari pentru " + user.getNume() + ":\n");
+        if(user.getNotificari().isEmpty())
+            System.out.println("Nu aveti notificari");
         for (Notificare n : user.getNotificari()) {
             System.out.println(n);
         }
@@ -221,13 +243,15 @@ public class MainService {
     }
 
     public static int MeniuUser(Scanner scanner, User user) {
-        System.out.print("Bine te-am gasit, " + user.getNume() + ". Ce doresti sa faci astazi?\n\n1.Afiseaza toate evenimentele posibile din restul anului.\n2.Cumpara un bilet nou.\n3.Anuleaza un bilet existent.\n4.Vizualizeaza lista ta cu biletele achizitionate.\n5.Cauta un eveniment dupa data.\n6.Trimite-ne evenimentul tau pentru a-l urca pe platforma!\n7.Vezi recenziile altor clienti.\n8.Lasa o recenzie\n9.Vezi notificarile tale.\n");
+        System.out.print("Bine te-am gasit, " + user.getNume() + ". Ce doresti sa faci astazi?\n\n1.Afiseaza toate evenimentele posibile din restul anului.\n2.Cumpara un bilet nou.\n3.Anuleaza un bilet existent.\n4.Vizualizeaza lista ta cu biletele achizitionate.\n5.Cauta un eveniment dupa data.\n6.Trimite-ne evenimentul tau pentru a-l urca pe platforma!\n7.Vezi recenziile altor clienti.\n8.Lasa o recenzie\n9.Vezi notificarile tale.\n10.Iesi din cont.\n11.Iesi din aplicatie.\n");
         if (user.getRole().equals("admin"))
-            System.out.print("10.Adauga un eveniment\n11.Anuleaza un eveniment.\n12.Gestioneaza solicitarile de evenimente.\n13.Trimite o notificare.\n");
-        System.out.print("14.Iesi din cont.\n15.Iesi din aplicatie.\n\nIntrodu numarul actiunii: ");
+            System.out.print("12.Adauga un eveniment\n13.Anuleaza un eveniment.\n14.Gestioneaza solicitarile de evenimente.\n15.Trimite o notificare.\n");
+        System.out.print("\n\nIntrodu numarul actiunii: ");
         int choice = 0;
         try {
             choice = scanner.nextInt();
+            if(choice > 11 && user.getRole().equals("user"))
+                return 11;
         } catch (InputMismatchException e) {
             System.out.println("Eroare: trebuie sa introduci un numar intreg!");
             scanner.nextLine();
@@ -313,6 +337,8 @@ public class MainService {
     }
 
     public static void veziRecenzii(List<Recenzie> recenzii) {
+        if(recenzii.isEmpty())
+            System.out.println("Nu avem recenzii momentan.");
         for(Recenzie r : recenzii)
             System.out.println(r);
         System.out.print("\n\n");
@@ -360,7 +386,13 @@ public class MainService {
 
         System.out.print("Data (format yyyy-MM-dd): ");
         String dataStr = scanner.next();
-        LocalDate data = LocalDate.parse(dataStr);
+        LocalDate data = null;
+        try {
+            data = LocalDate.parse(dataStr);
+        } catch (InputMismatchException e) {
+            System.out.println("Eroare: trebuie sa introduci o data in acel format!");
+            scanner.nextLine();
+        }
 
         System.out.print("Descriere: ");
         scanner.nextLine(); // consum \n de la inputul anterior
@@ -370,15 +402,26 @@ public class MainService {
         String locatie = scanner.nextLine();
 
         System.out.print("Capacitatea totala: ");
-        int capacitate = scanner.nextInt();
+        int capacitate = 0;
+        try {
+            capacitate = scanner.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Eroare: trebuie sa introduci un numar intreg!");
+            scanner.nextLine();
+        }
 
         System.out.print("Organizator: ");
         scanner.nextLine(); // consum \n de la int ul ant
         String organizator = scanner.nextLine();
 
         System.out.print("Pretul unui bilet standard: ");
-        double pret = scanner.nextDouble();
-
+        double pret = 0;
+        try {
+            pret = scanner.nextDouble();
+        } catch (InputMismatchException e) {
+            System.out.println("Eroare: trebuie sa introduci un numar intreg!");
+            scanner.nextLine();
+        }
         Event event = new Event(nume, data, descriere, locatie, capacitate, organizator);
         event.setPrice(pret);
         events.add(event);
