@@ -6,17 +6,17 @@ public class Bilet implements IBilet {
     private final String codUnic;
     private final String eventName;
     private final String cumparator;
-    private double pret;
     private boolean valid;
     private String tip;
+    Plata plata;
 
-    public Bilet(String eventName, String cumparator, double pret, String tip) {
+    public Bilet(String eventName, String cumparator,  String tip, Plata plata) {
         this.codUnic = UUID.randomUUID().toString(); // genereaza un cod unic
         this.eventName = eventName;
         this.cumparator = cumparator;
-        this.pret = pret;
         this.valid = true;
         this.tip = tip;
+        this.plata = plata;
     }
 
     @Override
@@ -40,16 +40,6 @@ public class Bilet implements IBilet {
     }
 
     @Override
-    public double getPret() {
-        return pret;
-    }
-
-    @Override
-    public void setPret(double pret) {
-        this.pret = pret;
-    }
-
-    @Override
     public void setTip(String tip) {
         this.tip = tip;
     }
@@ -65,13 +55,19 @@ public class Bilet implements IBilet {
     }
 
     @Override
+    public void setValid(boolean b) {
+        this.valid = b;
+        plata.setStatus("Rambursat");
+    }
+
+    @Override
     public String toString() {
         return "Bilet\n" +
                 "    cod = '" + codUnic + "'\n" +
                 "    event = '" + eventName + "'\n" +
                 "    cumparator = '" + cumparator + "'\n" +
-                "    pret = " + pret + "\n" +
-                "    valid = " + valid;
+                "    valid = " + valid+ "'\n" +
+                "    status plata = " + plata.getStatus() + "\n\n";
     }
 }
 

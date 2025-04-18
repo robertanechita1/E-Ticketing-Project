@@ -1,79 +1,119 @@
 package main;
 /*
+
+Proiectul meu este o platforma care se ocupa cu gestionarea evenimentelor.
+
 * Lista cu actiuni/interogari:
-    - vizualizare events restul anului
-    - cumparare bilet
-    - anulare bilet
-    - vizualizare lista bilete achizitionate
-    - trimitere solicitare adaugare in platforma event propriu
-    - cautare event dupa loc, data, etc
-    - adaugare de events in platforma (admin)
-    - aprobare/respingere solicitari (admin)
-    - gestionare nr de bilete disponibile (admin)
-    - anulare event is notificare participanti (admin)
+    - vizualizare events restul anului -done
+    - cumparare bilet -done
+    - anulare bilet -done
+    - vizualizare lista bilete achizitionate -done
+    - trimitere solicitare adaugare in platforma event propriu -done
+    - cautare event dupa data -done
+    - vezi recenzii -done
+    - lasa o recenzie -done
+    - vezi notificari -done
+    - delogare -done
+    - adaugare de events in platforma (admin) -done
+    - aprobare/respingere solicitari (admin) -done
+    - anulare event (admin) -done
+    - notificare participanti (admin) -done
 
 * Lista tipuri de obiecte:
     - event: data, locatie, bilete disp...
     - bilet: event, pret, tipBilet, user...
     - user: lista bilete, varsta, nume...
-    - admin
     - locatie: adresa, capacitate...
     - recenzie: text, data, user....
     - notificare: text, emitator, receptor, data....
     - plata: status, suma, metoda de plata, ultimele 4 cifre card....
-*
+
 *
 * */
 
 import classes.Event;
 import classes.Bilet;
+import classes.Recenzie;
+import classes.User;
+import services.MainService;
 
 import java.time.LocalDate;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        //  Cream un eveniment
-        Event e = new Event(
-                "Concert Rock",
-                LocalDate.of(2025, 7, 20),
-                "Un concert epic în aer liber.",
-                "Arena Națională",
-                5000,
-                "OrganizatorX"
-        );
+        Scanner scanner = new Scanner(System.in);
+        Set<User> users = new LinkedHashSet<>();
+        List<Event> events = new ArrayList<>();
+        List<Event> solicitari = new ArrayList<>();
+        List<Recenzie> recenzii = new ArrayList<>();
+        MainService.Initializare(users, events);
+        int actiune = 15;
+        User user = MainService.LoggedOut(scanner, users);
+        if(user == null)
+            return;
+        actiune = MainService.MeniuUser(scanner, user);
+        while(true){
+            switch (actiune) {
+                case 1:
+                    MainService.AfisareEvenimente(events);
+                    break;
+                case 2:
+                    System.out.print("La ce eveniment doriti sa mergeti?\n");
+                    String numeEveniment = scanner.next();
+                    for(Event e : events){
+                        if(numeEveniment.equalsIgnoreCase(e.getNume())){
+                            MainService.cumparaBilet(scanner, user, e);
+                            break;
+                        }
+                    }
+                    System.out.print("Nu exista acest eveniment.\n\n");
+                    break;
+                case 3:
+                    MainService.anuleazaBilet(scanner, user, events);
+                    break;
+                case 4:
+                    MainService.afiseazaBileteUser(user);
+                    break;
+                case 5:
+                    MainService.cautaEvenimente(scanner, events);
+                    break;
+                case 6:
+                    MainService.trimiteSolicitare(scanner, solicitari);
+                    break;
+                case 7:
+                    MainService.veziRecenzii(recenzii);
+                    break;
+                case 8:
+                    MainService.Recenzie(scanner, recenzii, user);
+                    break;
+                case 9:
+                    MainService.afiseazaNotificariUser(user);
+                    break;
+                case 10:
+                    MainService.adaugaEvent(scanner, events);
+                    break;
+                case 11:
+                    MainService.anuleazaEvent(scanner, events, users, user);
+                    break;
+                case 12:
+                    MainService.gestioneazaSolicitari(scanner, solicitari, events);
+                    break;
+                case 13:
+                    MainService.trimiteNotificare(scanner, user, users);
+                    break;
+                case 14:
+                    user = MainService.LoggedOut(scanner, users);
+                    break;
+                default:
+                    return;
+            }
+            if(user == null)
+                return;
+            actiune = MainService.MeniuUser(scanner, user);
+        }
 
-
-        System.out.println("DETALII EVENIMENT:");
-        System.out.println("Nume: " + e.getNume());
-        System.out.println("Data: " + e.getData());
-        System.out.println("Descriere: " + e.getDescriere());
-        System.out.println("Locatie: " + e.getLocatie());
-        System.out.println("Bilete disponibile: " + e.getNumarBileteDisponibile());
-        System.out.println("Organizator: " + e.getOrganizator());
-
-        // Testam setterii
-        e.setDescriere("Concert de rock alternativ în aer liber.");
-        e.setCapacitateTotala(6000);
-        e.setNumarBileteDisponibile(6000); // presupunem ca s-a marit capacitatea
-
-        System.out.println("\nDUPĂ UPDATE:");
-        System.out.println(e); // toString()
-
-        // Cream un bilet
-        Bilet b = new Bilet(e.getNume(), "Ana Popescu", 150.0, "VIP");
-
-        // Testam getterii biletului
-        System.out.println("\nDETALII BILET:");
-        System.out.println("Cod: " + b.getCodUnic());
-        System.out.println("Eveniment: " + b.getEventName());
-        System.out.println("Cumparator: " + b.getCumparator());
-        System.out.println("Pret: " + b.getPret());
-        System.out.println("Valid: " + b.esteValid());
-        System.out.println("Tip: " + b.getTip());
-
-        // anulam biletul
-        b.anuleaza();
-        System.out.println("Valid după anulare: " + b.esteValid());
     }
+
 }
 

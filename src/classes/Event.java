@@ -10,6 +10,7 @@ public class Event implements IEvent {
     private int numarBileteDisponibile;
     private int capacitateTotala;
     private String organizator;
+    private double price;
 
     public Event(String nume, LocalDate data, String descriere, String locatie,
                      int capacitateTotala, String organizator) {
@@ -95,6 +96,16 @@ public class Event implements IEvent {
     public String toString() {
         return "Eveniment: " + nume + " | Data: " + data + " | Locatie: " + locatie +
                 " | Bilete disponibile: " + numarBileteDisponibile + "/" + capacitateTotala;
+    }
+
+    @Override
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    @Override
+    public double getPrice() {
+        return price;
     }
 }
 

@@ -9,6 +9,7 @@ public interface IEvent {
     void setNumarBileteDisponibile(int numar);
     void setCapacitateTotala(int capacitate);
     void setOrganizator(String organizator);
+    void setPrice(double price);
 
     String getNume();
     LocalDate getData();
@@ -17,5 +18,6 @@ public interface IEvent {
     int getNumarBileteDisponibile();
     int getCapacitateTotala();
     String getOrganizator();
+    double getPrice();
     
 }

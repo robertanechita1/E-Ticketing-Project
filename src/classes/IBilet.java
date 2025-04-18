@@ -6,11 +6,10 @@ public interface IBilet {
     String getCumparator();
     String getTip();
 
-    double getPret();
     boolean esteValid();
 
     void setTip(String tip);
-    void setPret(double pret);
     void anuleaza();
+    void setValid(boolean b);
 }
 
