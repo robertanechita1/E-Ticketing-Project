@@ -23,19 +23,21 @@ Acest proiect reprezintă o aplicație are simulează o platformă de e-ticketin
 - Aprobare / respingere solicitări de la utilizatori pentru adăugarea evenimentelor
 - Anulare eveniment
 - Trimitere notificări către participanți
+- Actualizare line-up eveniment
 
 ---
 
 ## Tipuri de obiecte
 
-| Clasă        | Atribute principale |
-|--------------|---------------------|
-| **Event**     | `nume`, `data`, `locatie`, `capacitateTotala`, `numarBileteDisponibile`, `organizator` |
-| **Bilet**     | `event`, `pret`, `tipBilet`, `user`, `plata` |
-| **User**      | `nume`, `varsta`, `parola`, `listaBilete`, `notificari`, `evenimenteSuggerate` |
-| **Locatie**   | `adresa`, `capacitate` |
-| **Recenzie**  | `text`, `data`, `user`, `eveniment` |
-| **Notificare**| `text`, `emitator`, `receptor`, `data` |
-| **Plata**     | `status`, `suma`, `metodaPlata`, `ultimele4CifreCard` |
+| Clasă          | Atribute principale                                                                    |
+|----------------|----------------------------------------------------------------------------------------|
+| **Event**      | `nume`, `data`, `locatie`, `capacitateTotala`, `numarBileteDisponibile`, `organizator` |
+| **Bilet**      | `event`, `pret`, `tipBilet`, `user`, `plata`                                           |
+| **User**       | `nume`, `varsta`, `parola`, `listaBilete`, `notificari`, `evenimenteSuggerate`         |
+| **Locatie**    | `adresa`, `capacitate`                                                                 |
+| **Recenzie**   | `text`, `data`, `user`, `eveniment`                                                    |
+| **Notificare** | `text`, `emitator`, `receptor`, `data`                                                 |
+| **Plata**      | `status`, `suma`, `metodaPlata`, `ultimele4CifreCard`                                  |
+| **Artist**     | `nume`, `data(ziua in care va canta la eveniment)`, `descriere`, `views`               |
 
 ---
