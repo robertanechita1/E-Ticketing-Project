@@ -1,35 +1,4 @@
 package main;
-/*
-
-Proiectul meu este o platforma care se ocupa cu gestionarea evenimentelor.
-
-* Lista cu actiuni/interogari:
-    - vizualizare events restul anului -done
-    - cumparare bilet -done
-    - anulare bilet -done
-    - vizualizare lista bilete achizitionate -done
-    - trimitere solicitare adaugare in platforma event propriu -done
-    - cautare event dupa data -done
-    - vezi recenzii -done
-    - lasa o recenzie -done
-    - vezi notificari -done
-    - delogare -done
-    - adaugare de events in platforma (admin) -done
-    - aprobare/respingere solicitari (admin) -done
-    - anulare event (admin) -done
-    - notificare participanti (admin) -done
-
-* Lista tipuri de obiecte:
-    - event: data, locatie, bilete disp...
-    - bilet: event, pret, tipBilet, user...
-    - user: lista bilete, varsta, nume...
-    - locatie: adresa, capacitate...
-    - recenzie: text, data, user....
-    - notificare: text, emitator, receptor, data....
-    - plata: status, suma, metoda de plata, ultimele 4 cifre card....
-
-*
-* */
 
 import classes.Event;
 import classes.Bilet;
@@ -107,7 +76,9 @@ public class Main {
                 case 15:
                     MainService.trimiteNotificare(scanner, user, users);
                     break;
-
+                case 16:
+                    MainService.Lineup(scanner, events);
+                    break;
                 default:
                     return;
             }

@@ -3,10 +3,14 @@ package services;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.List;
 
 import classes.*;
+
+import javax.sound.sampled.Line;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -245,7 +249,7 @@ public class MainService {
     public static int MeniuUser(Scanner scanner, User user) {
         System.out.print("Bine te-am gasit, " + user.getNume() + ". Ce doresti sa faci astazi?\n\n1.Afiseaza toate evenimentele posibile din restul anului.\n2.Cumpara un bilet nou.\n3.Anuleaza un bilet existent.\n4.Vizualizeaza lista ta cu biletele achizitionate.\n5.Cauta un eveniment dupa data.\n6.Trimite-ne evenimentul tau pentru a-l urca pe platforma!\n7.Vezi recenziile altor clienti.\n8.Lasa o recenzie\n9.Vezi notificarile tale.\n10.Iesi din cont.\n11.Iesi din aplicatie.\n");
         if (user.getRole().equals("admin"))
-            System.out.print("12.Adauga un eveniment\n13.Anuleaza un eveniment.\n14.Gestioneaza solicitarile de evenimente.\n15.Trimite o notificare.\n");
+            System.out.print("12.Adauga un eveniment\n13.Anuleaza un eveniment.\n14.Gestioneaza solicitarile de evenimente.\n15.Trimite o notificare.\n16.Actualizeaza lista artistilor prezenti la un eveniment.\n");
         System.out.print("\n\nIntrodu numarul actiunii: ");
         int choice = 0;
         try {
@@ -475,6 +479,39 @@ public class MainService {
                 }
         }
         events.remove(event);
+    }
+
+    public static void Lineup(Scanner scanner, List<Event> events) {
+        boolean exista = false;
+        System.out.print("La ce eveniment doriti sa actualizati lista?\n");
+        scanner.nextLine();
+        String numeEv = scanner.nextLine();
+        for(Event e : events) {
+            if(e.getNume().equalsIgnoreCase(numeEv)) {
+                exista = true;
+                e.getLineup();
+                System.out.print("Ce artist vreti sa adaugati?\n");
+                String artist = scanner.nextLine();
+                System.out.print("Ce ar trebui sa stie participantii despre acest artist?\n");
+                String descriere = scanner.nextLine();
+                System.out.print("Pe ce data va canta artistul?(format yyyy-MM-dd)\n");
+                try {
+                    String data = scanner.nextLine();
+                    LocalDate dat = LocalDate.parse(data);
+                    System.out.print("Cate vizualizari are in ultimul an?(exprimat in M)\n");
+                    Double views = Double.parseDouble(scanner.nextLine());
+                    e.actLineup(new Artist(artist, dat, descriere, views));
+                    break;
+                }
+                catch(Exception ex){
+                    System.out.println(ex.getMessage());
+                }
+            }
+        }
+        if(!exista) {
+            System.out.println("Nu exista acest eveniment.\n");
+            return;
+        }
     }
 }
 

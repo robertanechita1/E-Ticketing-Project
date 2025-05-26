@@ -1,6 +1,8 @@
 package classes;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Event implements IEvent {
     private String nume;
@@ -11,6 +13,7 @@ public class Event implements IEvent {
     private int capacitateTotala;
     private String organizator;
     private double price;
+    private List<Artist> lineup = new ArrayList<>();
 
     public Event(String nume, LocalDate data, String descriere, String locatie,
                      int capacitateTotala, String organizator) {
@@ -94,8 +97,12 @@ public class Event implements IEvent {
     }
     @Override
     public String toString() {
+        String lnp = "In curand...";
+        if(!lineup.isEmpty()) {
+            lnp = lineup.toString().replace("[", "").replace("]", "");
+        }
         return "Eveniment: " + nume + " | Data: " + data + " | Locatie: " + locatie +
-                " | Bilete disponibile: " + numarBileteDisponibile + "/" + capacitateTotala;
+                " | Bilete disponibile: " + numarBileteDisponibile + "/" + capacitateTotala + "\nLine-up:\n" + lnp;
     }
 
     @Override
@@ -106,6 +113,15 @@ public class Event implements IEvent {
     @Override
     public double getPrice() {
         return price;
+    }
+
+    public void actLineup(Artist artist) {
+        this.lineup.add(artist);
+    }
+    public void getLineup() {
+        for(Artist a : lineup)
+            System.out.println(a);
+
     }
 }
 
