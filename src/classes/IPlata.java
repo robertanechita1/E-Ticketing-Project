@@ -6,4 +6,5 @@ public interface IPlata {
     String getStatus();
 
     void setStatus(String status);
+    String getcod();
 }

@@ -15,6 +15,11 @@ public class Event implements IEvent {
     private double price;
     private List<Artist> lineup = new ArrayList<>();
 
+    public Event() {
+        this.lineup = new ArrayList<>();
+    }
+
+
     public Event(String nume, LocalDate data, String descriere, String locatie,
                      int capacitateTotala, String organizator) {
         this.nume = nume;

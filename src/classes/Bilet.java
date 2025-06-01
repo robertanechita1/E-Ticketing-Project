@@ -1,5 +1,8 @@
 package classes;
 
+import db.GenericDao;
+
+import java.util.Optional;
 import java.util.UUID;
 
 public class Bilet implements IBilet {
@@ -8,9 +11,16 @@ public class Bilet implements IBilet {
     private final String cumparator;
     private boolean valid;
     private String tip;
-    Plata plata;
+    private String plata;
 
-    public Bilet(String eventName, String cumparator,  String tip, Plata plata) {
+    public Bilet() {
+        this.codUnic = null;
+        this.eventName = null;
+        this.cumparator = null;
+        this.valid = false;
+    }
+
+    public Bilet(String eventName, String cumparator,  String tip, String plata) {
         this.codUnic = UUID.randomUUID().toString(); // genereaza un cod unic
         this.eventName = eventName;
         this.cumparator = cumparator;
@@ -57,17 +67,35 @@ public class Bilet implements IBilet {
     @Override
     public void setValid(boolean b) {
         this.valid = b;
-        plata.setStatus("Rambursat");
+        GenericDao<Plata> plataDao = GenericDao.getInstance(Plata.class);
+        Optional<Plata> optionalPlata = null;
+        try {
+            optionalPlata = plataDao.findByField(this.plata, "cod_unic");
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (optionalPlata.isPresent()) {
+            Plata plata = optionalPlata.get();
+            plata.setStatus("Rambursat");
+            // plataDao.updateObj(plata);
+        }
+        else {
+            System.out.println("Plata nu a fost găsită în baza de date.");
+        }
     }
 
     @Override
     public String toString() {
+
+
         return "Bilet\n" +
                 "    cod = '" + codUnic + "'\n" +
                 "    event = '" + eventName + "'\n" +
                 "    cumparator = '" + cumparator + "'\n" +
                 "    valid = " + valid+ "'\n" +
-                "    status plata = " + plata.getStatus() + "\n\n";
+                "    cod plata = " + plata + "\n\n";
     }
 }
 

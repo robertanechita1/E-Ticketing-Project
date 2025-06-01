@@ -13,6 +13,9 @@ public class User implements IUser {
     private List<Notificare> notificari;
     private List<Event> eventuriSugerate;
 
+    public User() {
+    }
+
     public User(String nume, int varsta, String pass) {
         this.nume = nume;
         this.varsta = varsta;
