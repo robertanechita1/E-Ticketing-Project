@@ -1,12 +1,11 @@
 package classes;
 
-import db.GenericDao;
-
-import java.util.Optional;
 import java.util.UUID;
 
+import classes.Interfaces.IBilet;
+
 public class Bilet implements IBilet {
-    private final String codUnic;
+    private String codUnic;
     private final String eventName;
     private final String cumparator;
     private boolean valid;
@@ -50,6 +49,11 @@ public class Bilet implements IBilet {
     }
 
     @Override
+    public String getPlata() {
+        return plata;
+    }
+
+    @Override
     public void setTip(String tip) {
         this.tip = tip;
     }
@@ -65,25 +69,13 @@ public class Bilet implements IBilet {
     }
 
     @Override
-    public void setValid(boolean b) {
-        this.valid = b;
-        GenericDao<Plata> plataDao = GenericDao.getInstance(Plata.class);
-        Optional<Plata> optionalPlata = null;
-        try {
-            optionalPlata = plataDao.findByField(this.plata, "cod_unic");
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void setValid(boolean valid){
+        this.valid = valid;
+    }
 
-        if (optionalPlata.isPresent()) {
-            Plata plata = optionalPlata.get();
-            plata.setStatus("Rambursat");
-            // plataDao.updateObj(plata);
-        }
-        else {
-            System.out.println("Plata nu a fost găsită în baza de date.");
-        }
+    @Override
+    public void setCodUnic(String codUnic){
+        this.codUnic = codUnic;
     }
 
     @Override
@@ -98,4 +90,3 @@ public class Bilet implements IBilet {
                 "    cod plata = " + plata + "\n\n";
     }
 }
-

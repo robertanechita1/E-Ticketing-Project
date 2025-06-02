@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import classes.Interfaces.IEvent;
+
 public class Event implements IEvent {
     private String nume;
     private LocalDate data;
@@ -13,15 +15,10 @@ public class Event implements IEvent {
     private int capacitateTotala;
     private String organizator;
     private double price;
-    private List<Artist> lineup = new ArrayList<>();
-
-    public Event() {
-        this.lineup = new ArrayList<>();
-    }
 
 
     public Event(String nume, LocalDate data, String descriere, String locatie,
-                     int capacitateTotala, String organizator) {
+                     int capacitateTotala, String organizator, double price) {
         this.nume = nume;
         this.data = data;
         this.descriere = descriere;
@@ -29,6 +26,7 @@ public class Event implements IEvent {
         this.capacitateTotala = capacitateTotala;
         this.numarBileteDisponibile = capacitateTotala; // initial toate biletele sunt disponibile
         this.organizator = organizator;
+        this.price = price;
     }
 
     @Override
@@ -102,12 +100,9 @@ public class Event implements IEvent {
     }
     @Override
     public String toString() {
-        String lnp = "In curand...";
-        if(!lineup.isEmpty()) {
-            lnp = lineup.toString().replace("[", "").replace("]", "");
-        }
+
         return "Eveniment: " + nume + " | Data: " + data + " | Locatie: " + locatie +
-                " | Bilete disponibile: " + numarBileteDisponibile + "/" + capacitateTotala + "\nLine-up:\n" + lnp;
+                " | Bilete disponibile: " + numarBileteDisponibile + "/" + capacitateTotala + "\nLine-up:\n";
     }
 
     @Override
@@ -118,15 +113,6 @@ public class Event implements IEvent {
     @Override
     public double getPrice() {
         return price;
-    }
-
-    public void actLineup(Artist artist) {
-        this.lineup.add(artist);
-    }
-    public void getLineup() {
-        for(Artist a : lineup)
-            System.out.println(a);
-
     }
 }
 

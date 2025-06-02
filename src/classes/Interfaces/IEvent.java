@@ -1,6 +1,6 @@
-package classes;
+package classes.Interfaces;
 import java.time.LocalDate;
-import java.util.List;
+import classes.Artist;
 
 public interface IEvent {
     void setNume(String nume);
@@ -11,7 +11,6 @@ public interface IEvent {
     void setCapacitateTotala(int capacitate);
     void setOrganizator(String organizator);
     void setPrice(double price);
-    void actLineup(Artist artist);
 
 
     String getNume();
@@ -22,5 +21,5 @@ public interface IEvent {
     int getCapacitateTotala();
     String getOrganizator();
     double getPrice();
-    void getLineup();
+
 }

@@ -1,5 +1,7 @@
 package classes;
 
+import classes.Interfaces.IPlata;
+
 import java.util.UUID;
 
 public class Plata implements IPlata {

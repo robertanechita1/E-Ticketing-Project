@@ -1,4 +1,4 @@
-package classes;
+package classes.Interfaces;
 
 public interface IRecenzie {
     String getAutor();

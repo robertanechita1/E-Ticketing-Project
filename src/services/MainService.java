@@ -1,120 +1,134 @@
 package services;
 
-
-
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import classes.*;
-import db.DbConnection;
-import db.GenericDao;
-import java.sql.Connection;
+import db.DatabaseContext;
 
 public class MainService {
 
-    public static void cumparaBilet(Scanner scanner, User user, Event event) throws Exception {
-        if (event.getNumarBileteDisponibile() < 1) {
-            System.out.println("Ne pare rau, dar nu mai avem bilete momentan.\n\n");
-            return;
-        }
-
-        System.out.println("Ce tip de bilet doriti?\n1. VIP\n2. GENERAL ACCESS\n3. ONE DAY PASS");
-        int tip = scanner.nextInt();
-        scanner.nextLine(); // consumă newline
-
-        System.out.println("Scrieti numarul cardului cu care doriti sa efectuati plata: ");
-        String nrCard = scanner.nextLine();
-
-        Bilet bilet = null;
-        Plata plata;
-        GenericDao<Plata> plataDao = GenericDao.getInstance(Plata.class);
-        GenericDao<Bilet> biletDao = GenericDao.getInstance(Bilet.class);
-
-        switch (tip) {
-            case 1 -> {
-                plata = new Plata(event.getPrice() + 70, nrCard, "Plata efectuata");
-                bilet = new Bilet(event.getNume(), user.getNume(), "VIP", plata.getcod());
-            }
-            case 2 -> {
-                plata = new Plata(event.getPrice() + 20, nrCard, "Plata efectuata");
-                bilet = new Bilet(event.getNume(), user.getNume(), "GENERAL ACCESS", plata.getcod());
-            }
-            case 3 -> {
-                System.out.print("In a cata zi doriti sa veniti la eveniment?\n");
-                int ziAcces = scanner.nextInt();
-                scanner.nextLine(); // consumă newline
-                LocalDate dataAcces = event.getData().plusDays(ziAcces);
-
-                System.out.print("Doriti camping? (da/nu): ");
-                String raspunsCamping = scanner.nextLine().trim().toLowerCase();
-                boolean cuCamping = raspunsCamping.equals("da");
-
-                double pret = cuCamping ? event.getPrice() - 70 : event.getPrice() - 100;
-                plata = new Plata(pret, nrCard, "Plata efectuata");
-
-                bilet = new OneDayPass(event.getNume(), user.getNume(), dataAcces, cuCamping, "ONE DAY PASS", plata);
-            }
-            default -> {
-                System.out.println("Optiune invalida.");
+    public static void cumparaBilet(Scanner scanner, User user, Event event,
+                                    BiletService biletService, EventService eventService) {
+        try {
+            if (event.getNumarBileteDisponibile() < 1) {
+                System.out.println("Ne pare rau, dar nu mai avem bilete momentan.\n");
                 return;
             }
+
+            System.out.println("Ce tip de bilet doriti?\n1. VIP\n2. GENERAL ACCESS\n3. ONE DAY PASS");
+            int tip = scanner.nextInt();
+            scanner.nextLine(); // consumă newline
+
+            System.out.println("Scrieti numarul cardului cu care doriti sa efectuati plata: ");
+            String nrCard = scanner.nextLine();
+
+            Bilet bilet = null;
+            String codPlata = UUID.randomUUID().toString();
+            String tipBilet = "";
+            String statusPlata = "Plata efectuata";
+
+            switch (tip) {
+                case 1 -> {
+                    tipBilet = "VIP";
+                    bilet = new Bilet(event.getNume(), user.getNume(), tipBilet, codPlata);
+                }
+                case 2 -> {
+                    tipBilet = "GENERAL ACCESS";
+                    bilet = new Bilet(event.getNume(), user.getNume(), tipBilet, codPlata);
+                }
+                case 3 -> {
+                    System.out.print("In a cata zi doriti sa veniti la eveniment?\n");
+                    int ziAcces = scanner.nextInt();
+                    scanner.nextLine(); // consumă newline
+                    LocalDate dataAcces = event.getData().plusDays(ziAcces);
+
+                    System.out.print("Doriti camping? (da/nu): ");
+                    String raspunsCamping = scanner.nextLine().trim().toLowerCase();
+                    boolean cuCamping = raspunsCamping.equals("da");
+
+                    tipBilet = "ONE DAY PASS";
+                    bilet = new OneDayPass(event.getNume(), user.getNume(), dataAcces, cuCamping, tipBilet, codPlata);
+                }
+                default -> {
+                    System.out.println("Optiune invalida.");
+                    return;
+                }
+            }
+
+            // setez biletul ca valid
+            bilet.setValid(true);
+
+            // salvare in baza de date
+            biletService.create(bilet); //daca e one day pass schimb
+
+            // actualizez event-ul
+            event.setNumarBileteDisponibile(event.getNumarBileteDisponibile() - 1);
+            eventService.update(event);
+
+            System.out.println("Bilet cumpărat cu succes pentru " + bilet.getEventName() +
+                    ", de către " + user.getNume());
+
+        } catch (Exception e) {
+            System.out.println("A apărut o eroare la cumpărarea biletului: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        plataDao.addObj(plata);
-        //  biletul in DB
-        biletDao.addObj(bilet);
-
-        // actualizez user-ul
-       // user.adaugaBilet(bilet);
-
-        // scad bilet disponibil
-        event.setNumarBileteDisponibile(event.getNumarBileteDisponibile() - 1);
-        // TO DO: GenericDao<Event>.getInstance(Event.class).updateObject(event);
-
-        System.out.println("Bilet cumpărat cu succes pentru " + bilet.getEventName() +
-                ", de către " + user.getNume());
     }
 
 
-    public static void anuleazaBilet(Scanner scanner, User user) throws Exception {
+
+    public static void anuleazaBilet(Scanner scanner, User user) {
+        BiletService biletService =  new BiletService();
+        EventService eventService =  new EventService();
+
         System.out.print("De la ce eveniment doriti sa anulati biletul?\n");
         String eventName = scanner.next();
 
-        GenericDao<Bilet> biletDao = GenericDao.getInstance(Bilet.class);
-        GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
+        try (Connection conn = DatabaseContext.getReadContext().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bilete WHERE cumparator = ? AND event_name = ?")) {
 
-        List<Bilet> toateBiletele = biletDao.getObjects();
+            stmt.setString(1, user.getNume());
+            stmt.setString(2, eventName);
+            ResultSet rs = stmt.executeQuery();
 
-        boolean gasit = false;
+            boolean gasit = false;
 
-        for (Bilet bilet : toateBiletele) {
-            if (bilet.getCumparator().equalsIgnoreCase(user.getNume()) &&
-                    bilet.getEventName().equalsIgnoreCase(eventName) ) {
-                bilet.setValid(false);
-               // biletDao.updateObj(bilet); // update in DB
+            while (rs.next()) {
+                Bilet bilet = new Bilet(
+                        rs.getString("event_name"),
+                        rs.getString("cumparator"),
+                        rs.getString("tip"),
+                        rs.getString("plata")
+                );
+                bilet.setCodUnic(rs.getString("cod_unic"));
+                bilet.setValid(false); // anulez biletul
+
+                biletService.update(bilet); // actualizare în DB
                 gasit = true;
             }
-        }
 
-        if (gasit) {
-            // actualizez biletele disponibile in event
-            Optional<Event> optEvent = eventDao.findByField(eventName, "nume");
-            if (optEvent.isPresent()) {
-                Event e = optEvent.get();
-                e.setNumarBileteDisponibile(e.getNumarBileteDisponibile() + 1);
-               // eventDao.updateObj(e);
+            if (gasit) {
+                Optional<Event> optEvent = eventService.read(eventName);
+                if (optEvent.isPresent()) {
+                    Event e = optEvent.get();
+                    e.setNumarBileteDisponibile(e.getNumarBileteDisponibile() + 1);
+                    eventService.update(e);
+                }
+
+                System.out.println("Biletul pentru evenimentul " + eventName + " a fost anulat.");
+            } else {
+                System.out.println("Utilizatorul nu are un bilet valid la acest eveniment.");
             }
-            System.out.println("Biletul pentru evenimentul " + eventName + " a fost anulat.");
-        }
-        else {
-            System.out.println("Utilizatorul nu are un bilet valid la acest eveniment.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("A apărut o eroare la anularea biletului.");
         }
     }
-
 
 
     public static void trimiteSolicitare(Scanner scanner, List<Event> solicitariEvenimente) {
@@ -162,51 +176,39 @@ public class MainService {
             scanner.nextLine();
         }
 
-        Event event = new Event(nume, data, descriere, locatie, capacitate, organizator);
-        event.setPrice(pret);
+        Event event = new Event(nume, data, descriere, locatie, capacitate, organizator, pret);
 
         solicitariEvenimente.add(event);
-
         System.out.println("Solicitarea a fost trimisa spre aprobare.\n\n");
     }
 
     public static void afiseazaBileteUser(User user) throws Exception {
         System.out.println("Biletele lui " + user.getNume() + ":");
 
-        GenericDao<Bilet> biletDao = GenericDao.getInstance(Bilet.class);
-        List<Bilet> bilete = biletDao.getObjects(); //  toate biletele
+        BiletService biletService = new BiletService();
+        List<Bilet> bilete = biletService.readAll();
 
         boolean areBilete = false;
-        for (Bilet b : bilete) {
-            if (b.getCumparator().equals(user.getNume())) {
+        for (Bilet b : bilete)
+            if (b.getCumparator().equalsIgnoreCase(user.getNume()) && b.esteValid()) {
                 System.out.println(b);
                 areBilete = true;
             }
-        }
-        if (!areBilete)
+
+        if (!areBilete) {
             System.out.println("Nu aveti bilete disponibile.");
-    }
-
-
-
-    public static void afiseazaNotificariUser(User user) {
-        System.out.println("Notificari pentru " + user.getNume() + ":\n");
-        if(user.getNotificari().isEmpty())
-            System.out.println("Nu aveti notificari");
-        for (Notificare n : user.getNotificari()) {
-            System.out.println(n);
         }
     }
 
-    public static User LogIn(Scanner scanner) {
+
+    public static User LogIn(Scanner scanner, UserService userService) {
         try {
             System.out.print("Introdu un username: ");
             String username = scanner.next();
             System.out.print("Introdu un password: ");
             String password = scanner.next();
 
-            GenericDao<User> userDao = GenericDao.getInstance(User.class);
-            Optional<User> optionalUser = userDao.findByField(username, "nume");
+            Optional<User> optionalUser = userService.read(username);
 
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
@@ -215,34 +217,32 @@ public class MainService {
                     password = scanner.next();
                 }
                 return user;
-            }
-            else {
+            } else {
                 System.out.println("Utilizatorul nu exista. Doriti sa creati un nou cont? (da/nu)");
                 String raspuns = scanner.next();
                 if (raspuns.equalsIgnoreCase("da"))
-                    return SignIn(scanner);
+                    return SignIn(scanner, userService);
                 else
                     return null;
             }
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
 
-    public static User SignIn(Scanner scanner) {
-        try {
-            GenericDao<User> userDao = GenericDao.getInstance(User.class);
 
+    public static User SignIn(Scanner scanner, UserService userService) {
+        try {
             String username;
             Optional<User> optionalUser;
+
             do {
                 System.out.print("Introdu un username: ");
                 username = scanner.next();
-                optionalUser = userDao.findByField(username, "nume");
+                optionalUser = userService.read(username);
                 if (optionalUser.isPresent()) {
                     System.out.println("Username deja existent. Alege altul.");
                 }
@@ -263,10 +263,8 @@ public class MainService {
                 }
             }
 
-            User user = new User(username, varsta, password);
-            user.setRole("user");
-
-            userDao.addObj(user); // salvare in baza de date
+            User user = new User(username, varsta, password, "user");
+            userService.create(user); // salvare in baza de date
 
             System.out.println("Cont creat cu succes!");
             return user;
@@ -278,7 +276,9 @@ public class MainService {
     }
 
 
+
     public static User LoggedOut(Scanner scanner) {
+        UserService userService = new UserService();
         System.out.print("Bine ați venit! Ce acțiune doriți să efectuați?\n\n1. Să intru în contul meu.\n2. Să îmi creez un cont.\n\nIntrodu numărul acțiunii: ");
         int option = 0;
         try {
@@ -291,10 +291,10 @@ public class MainService {
         User user = null;
         switch(option) {
             case 1:
-                return MainService.LogIn(scanner);
+                return MainService.LogIn(scanner, userService);
 
             case 2:
-                return MainService.SignIn(scanner);
+                return MainService.SignIn(scanner, userService);
         }
         return null;
     }
@@ -317,10 +317,21 @@ public class MainService {
     }
 
     public static void AfisareEvenimente() throws Exception {
-        List<Event> ev = GenericDao.getInstance(Event.class).getObjects();
-        for (Event e : ev) {
+        EventService eventService = new EventService();
+        List<Event> toateEvenimentele = eventService.readAll();
+
+        for (Event e : toateEvenimentele) {
             System.out.println(e);
+            List<Artist>lineup = eventService.getArtistiPentruEveniment(e.getNume());
+            if(lineup.isEmpty())
+                System.out.println("In curand...\n");
+            else
+                for (Artist a : lineup)
+                    System.out.println(a.getNume() + ": " + a.getDescriere());
+
         }
+
+
         System.out.print("\n\n");
     }
 
@@ -334,8 +345,8 @@ public class MainService {
             LocalDate dataStart = LocalDate.parse(dataStartStr);
             LocalDate dataFinal = LocalDate.parse(dataFinalStr);
 
-            GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
-            List<Event> events = eventDao.getObjects(); // luam toate evenimentele din DB
+            EventService eventService = new EventService();
+            List<Event> events = eventService.readAll(); // luam toate evenimentele din DB
 
             boolean exista = false;
             System.out.println("Evenimente in perioada selectata:\n");
@@ -378,7 +389,7 @@ public class MainService {
         recenzii.add(recenzie);
     }
 
-    public static void gestioneazaSolicitari(Scanner scanner, List<Event> solicitari) throws Exception {
+    public static void gestioneazaSolicitari(Scanner scanner, List<Event> solicitari, EventService eventService) throws Exception {
         if (solicitari.isEmpty()) {
             System.out.println("Nu sunt solicitari noi.");
             return;
@@ -391,8 +402,7 @@ public class MainService {
             String ans = scanner.next();
 
             if (ans.equalsIgnoreCase("da")) {
-                GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
-                eventDao.addObj(ev);
+                eventService.create(ev);
                 System.out.println("Evenimentul a fost aprobat si adaugat in platforma.\n");
             }
             else {
@@ -405,7 +415,7 @@ public class MainService {
 
 
 
-    public static void adaugaEvent(Scanner scanner) throws Exception {
+    public static void adaugaEvent(Scanner scanner, EventService eventService) throws Exception {
         System.out.print("Nume eveniment: ");
         scanner.nextLine();
         String nume = scanner.nextLine();
@@ -439,7 +449,7 @@ public class MainService {
         }
 
         System.out.print("Organizator: ");
-        scanner.nextLine(); // consum \n de la int ul ant
+        scanner.nextLine(); // consum \n de la int ul anterior
         String organizator = scanner.nextLine();
 
         System.out.print("Pretul unui bilet standard: ");
@@ -451,35 +461,35 @@ public class MainService {
             System.out.println("Eroare: trebuie sa introduci un numar intreg!");
             scanner.nextLine();
         }
-        Event event = new Event(nume, data, descriere, locatie, capacitate, organizator);
-        event.setPrice(pret);
-        event.setPrice(539.99);
-        GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
-        eventDao.addObj(event);
+        Event event = new Event(nume, data, descriere, locatie, capacitate, organizator, pret);
+        eventService.create(event);
     }
 
-    public static void trimiteNotificare(Scanner scanner, User from) throws Exception {
-        GenericDao<User> userDao = GenericDao.getInstance(User.class);
+    public static void trimiteNotificare(Scanner scanner, User from, List<Notificare> notificari, UserService userService) throws Exception {
         System.out.print("Catre cine doriti sa trimiteti o notificare?\n");
         scanner.nextLine();
         String nume = scanner.nextLine();
-        Optional<User> us = userDao.findByField(nume, "nume");
-        if (us.isPresent()) {
-            User to = us.get();
-            System.out.println("Ce mesaj doriti sa transmiteti?\n");
+
+        Optional<User> toOpt = userService.read(nume);
+
+        if (toOpt.isPresent()) {
+            User to = toOpt.get();
+
+            System.out.println("Ce mesaj doriti sa transmiteti?");
             String mesaj = scanner.nextLine();
-            Notificare n = new Notificare(mesaj, from, to);
-            to.adaugaNotificare(n);
+
+            Notificare notificare = new Notificare(mesaj, from, to);
+            notificari.add(notificare);
+
             System.out.println("Notificare trimisa cu succes catre " + to.getNume());
         }
         else {
-            System.out.println("Nu exista acest utilizator\n");
-            return;
+            System.out.println("Nu exista acest utilizator.");
         }
-
     }
 
-    public static void anuleazaEvent(Scanner scanner, User user) throws Exception {
+
+    public static void anuleazaEvent(Scanner scanner, User user, EventService eventService, BiletService biletService, UserService userService, List<Notificare>notif) throws Exception {
         System.out.print("Nume eveniment: ");
         scanner.nextLine();
         String nume = scanner.nextLine();
@@ -487,25 +497,21 @@ public class MainService {
         System.out.print("Ce mesaj doriti sa transmiteti utilizatorilor care voiau sa vina la acest eveniment? ");
         String mesaj = scanner.nextLine();
 
-        GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
-        GenericDao<Bilet> biletDao = GenericDao.getInstance(Bilet.class);
-
-        Optional<Event> eventOptional = eventDao.findByField(nume, "nume");
+        Optional<Event> eventOptional = eventService.read(nume);
         if(eventOptional.isEmpty()) {
             System.out.println("Nu exista acest eveniment.");
             return;
         }
         Event event = eventOptional.get();
 
-        List<Bilet> bilete = biletDao.getObjects();
+        List<Bilet> bilete = biletService.readAll();
 
         for(Bilet b : bilete) {
-            if(b.getEventName().equalsIgnoreCase(nume) && b.esteValid()) {
+            if(b.getEventName().equalsIgnoreCase(nume)) {
                 // gasesc utilizatorul dupa username
-                GenericDao<User> userDao = GenericDao.getInstance(User.class);
                 User userCumparator = null;
                 try {
-                    Optional<User> optionalUser = userDao.findByField(b.getCumparator(), "nume");
+                    Optional<User> optionalUser = userService.read(b.getCumparator());
                     if(optionalUser.isPresent()) {
                         userCumparator = optionalUser.get();
                     }
@@ -516,34 +522,29 @@ public class MainService {
 
                 if(userCumparator != null) {
                     Notificare n = new Notificare(mesaj, user, userCumparator);
-                    userCumparator.adaugaNotificare(n);
+                    notif.add(n);
                 }
-
-                // anulez biletul
-                b.setValid(false);
-                //biletDao.updateObj(b);
+                biletService.delete(b.getCodUnic());
             }
         }
 
         // sterg event din db
-       // eventDao.deleteObj(event);
+        eventService.delete(nume);
 
         System.out.println("Evenimentul si biletele aferente au fost anulate si sterse.");
     }
 
 
 
-    public static void Lineup(Scanner scanner) throws Exception {
+    public static void Lineup(Scanner scanner, EventService eventService, ArtistService artistService) throws Exception {
         boolean exista = false;
-        GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
         System.out.print("La ce eveniment doriti sa actualizati lista?\n");
         scanner.nextLine();
         String numeEv = scanner.nextLine();
-        Optional<Event>eventOptional = eventDao.findByField(numeEv, "nume");
+        Optional<Event>eventOptional = eventService.read(numeEv);
         if(eventOptional.isPresent()) {
             Event e = eventOptional.get();
             exista = true;
-            e.getLineup();
             System.out.print("Ce artist vreti sa adaugati?\n");
             String artist = scanner.nextLine();
             System.out.print("Ce ar trebui sa stie participantii despre acest artist?\n");
@@ -554,7 +555,15 @@ public class MainService {
                 LocalDate dat = LocalDate.parse(data);
                 System.out.print("Cate vizualizari are in ultimul an?(exprimat in M)\n");
                 Double views = Double.parseDouble(scanner.nextLine());
-                e.actLineup(new Artist(artist, dat, descriere, views));
+                artistService.create(new Artist(artist, descriere, views));
+                Optional<Boolean> rezultat = artistService.adaugaArtistLaEveniment(artist, numeEv, Date.valueOf(dat));
+                if (rezultat.isPresent()) {
+                    System.out.println("Artistul a fost adaugat la eveniment cu succes.");
+                }
+                else {
+                    System.out.println("Artistul sau evenimentul nu exista.");
+                }
+
             }
             catch(Exception ex){
                 System.out.println(ex.getMessage());

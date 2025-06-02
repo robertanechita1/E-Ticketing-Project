@@ -6,8 +6,8 @@ public class OneDayPass extends Bilet {
     private LocalDate ziAcces;
     private boolean includeCamping;
 
-    public OneDayPass(String eventName, String cumparator, LocalDate ziAcces, boolean includeCamping, String tip, Plata plata) {
-        super(eventName, cumparator, tip, plata.getcod());
+    public OneDayPass(String eventName, String cumparator, LocalDate ziAcces, boolean includeCamping, String tip, String codplata) {
+        super(eventName, cumparator, tip, codplata);
         this.ziAcces = ziAcces;
         this.includeCamping = includeCamping;
     }

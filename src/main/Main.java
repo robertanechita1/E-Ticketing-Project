@@ -1,25 +1,35 @@
 package main;
 
 import classes.Event;
+import classes.Notificare;
 import classes.Recenzie;
 import classes.User;
-import db.GenericDao;
-import services.MainService;
+import db.DatabaseContext;
+import services.*;
 
 import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+
+        DatabaseContext.initializeDatabase();
+
+        DatabaseContext readContext = DatabaseContext.getReadContext();
+        DatabaseContext writeContext = DatabaseContext.getWriteContext();
+
         Scanner scanner = new Scanner(System.in);
-        Set<User> users = new LinkedHashSet<>();
-        List<Event> events = new ArrayList<>();
         List<Event> solicitari = new ArrayList<>();
         List<Recenzie> recenzii = new ArrayList<>();
+        List<Notificare>notificari = new ArrayList<>();
         int actiune = 11;
         User user = MainService.LoggedOut(scanner);
         if(user == null)
             return;
         actiune = MainService.MeniuUser(scanner, user);
+        EventService eventService =  new EventService();
+        BiletService biletService =  new BiletService();
+        UserService userService =  new UserService();
+        ArtistService artistService =  new ArtistService();
         while(true){
             switch (actiune) {
                 case 1:
@@ -29,12 +39,11 @@ public class Main {
                     System.out.print("La ce eveniment doriti sa mergeti?\n");
                     String numeEveniment = scanner.next();
 
-                    GenericDao<Event> eventDao = GenericDao.getInstance(Event.class);
-                    Optional<Event> eventOpt = eventDao.findByField(numeEveniment, "nume");
+                    Optional<Event> eventOpt = eventService.read(numeEveniment);
 
                     if (eventOpt.isPresent()) {
                         Event e = eventOpt.get();
-                        MainService.cumparaBilet(scanner, user, e);
+                        MainService.cumparaBilet(scanner, user, e, biletService, eventService);
                     }
                     else
                         System.out.print("Nu exista acest eveniment.\n\n");
@@ -59,7 +68,7 @@ public class Main {
                     MainService.Recenzie(scanner, recenzii, user);
                     break;
                 case 9:
-                    MainService.afiseazaNotificariUser(user);
+                    user.getNotificari(notificari);
                     break;
                 case 10:
                     user = MainService.LoggedOut(scanner);
@@ -67,19 +76,19 @@ public class Main {
                 case 11:
                     return;
                 case 12:
-                    MainService.adaugaEvent(scanner);
+                    MainService.adaugaEvent(scanner, eventService);
                     break;
                 case 13:
-                    MainService.anuleazaEvent(scanner, user);
-                    break;
+                    MainService.anuleazaEvent(scanner, user, eventService, biletService, userService, notificari);
+                    break;//DE ADAUGAT STERGERE EVENT_ARTIST INAINTE DE STERGERE EVENT
                 case 14:
-                    MainService.gestioneazaSolicitari(scanner, solicitari);
+                    MainService.gestioneazaSolicitari(scanner, solicitari, eventService);
                     break;
                 case 15:
-                    MainService.trimiteNotificare(scanner, user); //TO DO
+                    MainService.trimiteNotificare(scanner, user, notificari, userService);
                     break;
                 case 16:
-                    MainService.Lineup(scanner); // TO CHECK, PT CA NU DA ERROR DAR NU AFISEAZA DECI CRED CA E DE LA AFISEAZA EVENIMENTE
+                    MainService.Lineup(scanner, eventService, artistService);
                     break;
                 default:
                     return;

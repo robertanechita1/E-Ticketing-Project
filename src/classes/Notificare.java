@@ -2,7 +2,7 @@ package classes;
 
 import java.time.LocalDateTime;
 
-public class Notificare implements INotificare {
+public class Notificare implements classes.INotificare {
     private final String text;
     private final User emitator;
     private final User receptor;

@@ -1,6 +1,8 @@
 package classes;
 
 
+import classes.Interfaces.IRecenzie;
+
 public class Recenzie implements IRecenzie {
     private final String autor;
     private String text;
