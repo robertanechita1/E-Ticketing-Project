@@ -100,3 +100,67 @@ READ_ALL,Bilet,2025-06-02 19:46:12
 DELETE,event_artists pentru eveniment: as,2025-06-02 19:46:12
 DELETE,Event,2025-06-02 19:46:12
 READ_ALL,Event,2025-06-02 19:46:18
+READ,User,2025-06-06 00:51:44
+READ,User,2025-06-06 01:20:08
+READ_ALL,Event,2025-06-06 01:20:08
+CREATE,Event,2025-06-06 01:20:29
+READ_ALL,Event,2025-06-06 01:20:31
+READ,event_artists pentru eveniment: as,2025-06-06 01:20:31
+CREATE,Event,2025-06-06 01:20:49
+READ_ALL,Event,2025-06-06 01:20:50
+READ,event_artists pentru eveniment: as,2025-06-06 01:20:50
+READ,event_artists pentru eveniment: asdf,2025-06-06 01:20:50
+READ,Event,2025-06-06 01:21:01
+CREATE,Artist,2025-06-06 01:21:09
+CREATE,event_artists,2025-06-06 01:21:09
+READ_ALL,Event,2025-06-06 01:21:11
+READ,event_artists pentru eveniment: as,2025-06-06 01:21:11
+READ,event_artists pentru eveniment: asdf,2025-06-06 01:21:11
+READ,Event,2025-06-06 01:21:38
+CREATE,Artist,2025-06-06 01:21:48
+CREATE,event_artists,2025-06-06 01:21:48
+READ,User,2025-06-06 01:22:17
+READ_ALL,Event,2025-06-06 01:22:18
+READ,event_artists pentru eveniment: as,2025-06-06 01:22:18
+READ,event_artists pentru eveniment: asdf,2025-06-06 01:22:18
+READ,Artist,2025-06-06 01:22:40
+UPDATE,Artist,2025-06-06 01:22:48
+READ,User,2025-06-06 01:23:07
+READ,Artist,2025-06-06 01:23:11
+DELETE,Event_Artist,2025-06-06 01:23:15
+DELETE,Artist,2025-06-06 01:23:15
+READ,User,2025-06-06 01:24:00
+READ_ALL,Event,2025-06-06 01:24:26
+READ,event_artists pentru eveniment: as,2025-06-06 01:24:26
+READ,event_artists pentru eveniment: asdf,2025-06-06 01:24:26
+READ,User,2025-06-06 01:25:13
+READ_ALL,Event,2025-06-06 01:25:16
+READ,event_artists pentru eveniment: as,2025-06-06 01:25:16
+READ,event_artists pentru eveniment: asdf,2025-06-06 01:25:16
+READ,Event,2025-06-06 01:25:37
+READ_ALL,Bilet,2025-06-06 01:25:37
+DELETE,event_artists pentru eveniment: asdf,2025-06-06 01:25:37
+DELETE,Event,2025-06-06 01:25:37
+CREATE,User,2025-06-06 01:53:55
+READ_ALL,Event,2025-06-06 01:54:24
+READ,event_artists pentru eveniment: as,2025-06-06 01:54:25
+READ,User,2025-06-06 01:58:10
+UPDATE,User,2025-06-06 01:58:21
+READ,User,2025-06-06 01:58:31
+UPDATE,User,2025-06-06 01:58:41
+DELETE,Bilet,2025-06-06 01:59:19
+DELETE,User,2025-06-06 01:59:19
+CREATE,User,2025-06-06 01:59:36
+CREATE,User,2025-06-06 02:08:53
+DELETE,Bilet,2025-06-06 02:09:04
+DELETE,User,2025-06-06 02:09:04
+READ,User,2025-06-06 02:09:16
+READ,Artist,2025-06-06 02:09:32
+UPDATE,Artist,2025-06-06 02:09:39
+READ,Artist,2025-06-06 02:09:47
+UPDATE,Artist,2025-06-06 02:09:49
+READ,User,2025-06-06 02:11:17
+READ,Artist,2025-06-06 02:11:22
+UPDATE,Artist,2025-06-06 02:11:25
+READ_ALL,Event,2025-06-06 02:11:27
+READ,event_artists pentru eveniment: as,2025-06-06 02:11:27

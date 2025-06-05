@@ -67,13 +67,19 @@ public class UserService {
     }
 
     public void delete(String nume) throws SQLException {
-        String sql = "DELETE FROM users WHERE nume = ?";
+        String deleteBileteSql = "DELETE FROM bilete WHERE cumparator = ?";
+        String deleteUserSql = "DELETE FROM users WHERE nume = ?";
 
         try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, nume);
-            
-            stmt.executeUpdate();
+             PreparedStatement stmt1 = conn.prepareStatement(deleteBileteSql);
+             PreparedStatement stmt2 = conn.prepareStatement(deleteUserSql)) {
+
+            stmt1.setString(1, nume);
+            stmt1.executeUpdate();
+            auditService.audit("DELETE", "Bilet");
+
+            stmt2.setString(1, nume);
+            stmt2.executeUpdate();
             auditService.audit("DELETE", "User");
         }
     }

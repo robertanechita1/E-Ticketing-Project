@@ -1,9 +1,7 @@
 package services;
 
-import java.sql.Connection;
+import java.sql.*;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -300,21 +298,22 @@ public class MainService {
     }
 
     public static int MeniuUser(Scanner scanner, User user) {
-        System.out.print("Bine te-am gasit, " + user.getNume() + ". Ce doresti sa faci astazi?\n\n1.Afiseaza toate evenimentele posibile din restul anului.\n2.Cumpara un bilet nou.\n3.Anuleaza un bilet existent.\n4.Vizualizeaza lista ta cu biletele achizitionate.\n5.Cauta un eveniment dupa data.\n6.Trimite-ne evenimentul tau pentru a-l urca pe platforma!\n7.Vezi recenziile altor clienti.\n8.Lasa o recenzie\n9.Vezi notificarile tale.\n10.Iesi din cont.\n11.Iesi din aplicatie.\n");
+        System.out.print("Bine te-am gasit, " + user.getNume() + ". Ce doresti sa faci astazi?\n\n1.Afiseaza toate evenimentele posibile din restul anului.\n2.Cumpara un bilet nou.\n3.Anuleaza un bilet existent.\n4.Vizualizeaza lista ta cu biletele achizitionate.\n5.Cauta un eveniment dupa data.\n6.Trimite-ne evenimentul tau pentru a-l urca pe platforma!\n7.Vezi recenziile altor clienti.\n8.Lasa o recenzie\n9.Vezi notificarile tale.\n10.Iesi din cont.\n11.Actualizeaza-ti profilul.\n12.Iesi din aplicatie.\n");
         if (user.getRole().equals("admin"))
-            System.out.print("12.Adauga un eveniment\n13.Anuleaza un eveniment.\n14.Gestioneaza solicitarile de evenimente.\n15.Trimite o notificare.\n16.Actualizeaza lista artistilor prezenti la un eveniment.\n");
+            System.out.print("13.Adauga un eveniment\n14.Anuleaza un eveniment.\n15.Gestioneaza solicitarile de evenimente.\n16.Trimite o notificare.\n17.Actualizeaza lista artistilor prezenti la un eveniment.\n18.Actualizeaza datele despre un artist.\n");
         System.out.print("\n\nIntrodu numarul actiunii: ");
         int choice = 0;
         try {
             choice = scanner.nextInt();
-            if(choice > 11 && user.getRole().equals("user"))
-                return 11;
+            if(choice > 12 && user.getRole().equals("user"))
+                return 12;
         } catch (InputMismatchException e) {
             System.out.println("Eroare: trebuie sa introduci un numar intreg!");
             scanner.nextLine();
         }
         return choice;
     }
+
 
     public static void AfisareEvenimente() throws Exception {
         EventService eventService = new EventService();
@@ -572,6 +571,97 @@ public class MainService {
         else
             System.out.println("Nu exista acest eveniment.\n");
 
+    }
+
+    public static void ActArtist(Scanner scanner, ArtistService artistService) throws SQLException {
+        System.out.print("Spune numele artistului: ");
+        scanner.nextLine();
+        String nume = scanner.nextLine();
+        Optional<Artist>artist = artistService.read(nume);
+        if(artist.isPresent()) {
+            Artist a = artist.get();
+            System.out.println(a.getNume());
+            System.out.println(a.getDescriere());
+            System.out.println(a.getViews());
+            System.out.println("Ce doresti sa modifici?\n1. Descriere\n2. Numarul de views\n3. Vreau sa sterg acest artist din lista.\n");
+            int option = scanner.nextInt();
+            scanner.nextLine(); // consuma newline-ul ramas dupa nextInt
+            switch (option) {
+                case 1:
+                    a.setDescriere(scanner.nextLine());
+                    break;
+                case 2:
+                    a.setViews(scanner.nextDouble());
+                    break;
+                case 3:
+                    artistService.delete(nume);
+                    return;
+                default:
+                    break;
+            }
+            artistService.update(a);
+
+        }
+        else
+            System.out.println("Nu exista acest artist.\n");
+    }
+    public static User EditProfile(Scanner scanner, UserService userService, User user) throws SQLException {
+        System.out.print("Ce doresti sa faci?\n1.Schimba Parola\n2.Actualizeaza varsta\n3.Dezacctivare Cont\n ");
+        int option = scanner.nextInt();
+        scanner.nextLine(); // consuma newline-ul ramas dupa nextInt
+        switch (option) {
+            case 1:
+                System.out.print("Scrie parola actuala: ");
+                String pass = scanner.nextLine();
+                if(pass != null && pass.equals(user.getPass())) {
+                    System.out.print("Scrie parola dorita: ");
+                    pass = scanner.nextLine();
+                    user.setPass(pass);
+                    userService.update(user);
+                    System.out.println("Parola a fost modificata.");
+                }
+                else
+                    System.out.println("Parola incorecta. Nu aveti dreptul sa schimbati parola.\n");
+
+                break;
+            case 2:
+                System.out.print("Scrie varsta: ");
+                try{
+                    int varsta = Integer.parseInt(scanner.nextLine());
+                   // scanner.nextLine();
+                    user.setVarsta(varsta);
+                    userService.update(user);
+                }
+                catch(Exception e) {
+                    System.out.println(e.getMessage());
+                }
+                break;
+            case 3:
+                System.out.print("Esti sigur? Contul nu poate fi recuperat. Y/N ");
+                String input = scanner.nextLine().trim().toLowerCase();
+                switch(input) {
+                    case "y":
+                        System.out.print("Scrie parola actuala: ");
+                        pass = scanner.nextLine();
+                        if(pass != null && pass.equals(user.getPass())) {
+                            userService.delete(user.getNume());
+                            System.out.println("Contul a fost sters.");
+                            return LoggedOut(scanner);
+                        }
+                        else
+                            System.out.println("Parola incorecta. Nu aveti dreptul sa stergeti acest cont.\n");
+                        break;
+                    case "n":
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+
+        }
+        return user;
     }
 }
 

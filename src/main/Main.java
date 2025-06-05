@@ -74,25 +74,32 @@ public class Main {
                     user = MainService.LoggedOut(scanner);
                     break;
                 case 11:
-                    return;
+                    user = MainService.EditProfile(scanner, userService, user);
+                    break;
                 case 12:
+                    return;
+                case 13:
                     MainService.adaugaEvent(scanner, eventService);
                     break;
-                case 13:
-                    MainService.anuleazaEvent(scanner, user, eventService, biletService, userService, notificari);
-                    break;//DE ADAUGAT STERGERE EVENT_ARTIST INAINTE DE STERGERE EVENT
                 case 14:
-                    MainService.gestioneazaSolicitari(scanner, solicitari, eventService);
+                    MainService.anuleazaEvent(scanner, user, eventService, biletService, userService, notificari);
                     break;
                 case 15:
-                    MainService.trimiteNotificare(scanner, user, notificari, userService);
+                    MainService.gestioneazaSolicitari(scanner, solicitari, eventService);
                     break;
                 case 16:
+                    MainService.trimiteNotificare(scanner, user, notificari, userService);
+                    break;
+                case 17:
                     MainService.Lineup(scanner, eventService, artistService);
+                    break;
+                case 18:
+                    MainService.ActArtist(scanner, artistService);
                     break;
                 default:
                     return;
             }
+
             if(user == null)
                 return;
             actiune = MainService.MeniuUser(scanner, user);

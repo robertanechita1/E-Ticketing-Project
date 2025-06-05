@@ -49,6 +49,15 @@ public class User implements IUser {
         return varsta;
     }
 
+    @Override
+    public void setVarsta(int varsta) {
+        this.varsta = varsta;
+    }
+
+    @Override
+    public void setPass(String pass) {
+        this.pass = pass;
+    }
 
     @Override
     public void getNotificari(List<Notificare> notificari) {

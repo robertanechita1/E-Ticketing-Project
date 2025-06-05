@@ -11,8 +11,10 @@ public interface IUser {
     String getNume();
 
     String getPass();
+    void setPass(String pass);
 
     int getVarsta();
+    void setVarsta(int varsta);
 
     void getNotificari(List<Notificare> notificari);
     void getEventuriSugerate(List<Event> events);

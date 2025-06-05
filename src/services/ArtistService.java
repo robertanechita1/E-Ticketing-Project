@@ -65,15 +65,26 @@ public class ArtistService {
     }
 
     public void delete(String nume) throws SQLException {
-        String sql = "DELETE FROM artists WHERE nume = ?";
+        String deleteEventArtistsSql = "DELETE FROM event_artists WHERE artist_nume = ?";
+        String deleteArtistSql = "DELETE FROM artists WHERE nume = ?";
 
         try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, nume);
-            stmt.executeUpdate();
+             PreparedStatement stmt1 = conn.prepareStatement(deleteEventArtistsSql);
+             PreparedStatement stmt2 = conn.prepareStatement(deleteArtistSql)) {
+
+            // sterg din event_artists mai intai
+            stmt1.setString(1, nume);
+            stmt1.executeUpdate();
+            auditService.audit("DELETE", "Event_Artist");
+
+            // apoi din artists
+            stmt2.setString(1, nume);
+            stmt2.executeUpdate();
             auditService.audit("DELETE", "Artist");
         }
     }
+
+
 
     // artist - eveniment
     public Optional<Boolean> adaugaArtistLaEveniment(String numeArtist, String numeEveniment, Date dataConcertului) throws SQLException {
