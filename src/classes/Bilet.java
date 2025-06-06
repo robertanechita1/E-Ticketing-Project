@@ -28,6 +28,15 @@ public class Bilet implements IBilet {
         this.plata = plata;
     }
 
+    public Bilet(String codUnic, String eventName, String cumparator, boolean valid, String tip, String plata) {
+        this.codUnic = codUnic;
+        this.eventName = eventName;
+        this.cumparator = cumparator;
+        this.valid = valid;
+        this.tip = tip;
+        this.plata = plata;
+    }
+
     @Override
     public String getCodUnic() {
         return codUnic;

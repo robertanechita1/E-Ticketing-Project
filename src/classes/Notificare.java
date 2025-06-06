@@ -2,7 +2,7 @@ package classes;
 
 import java.time.LocalDateTime;
 
-public class Notificare implements classes.INotificare {
+public class Notificare implements classes.INotificare, Comparable<Notificare> {
     private final String text;
     private final User emitator;
     private final User receptor;
@@ -13,6 +13,11 @@ public class Notificare implements classes.INotificare {
         this.emitator = emitator;
         this.receptor = receptor;
         this.data = LocalDateTime.now();
+    }
+
+    @Override
+    public int compareTo(Notificare o) {
+        return this.data.compareTo(o.data);
     }
 
     @Override

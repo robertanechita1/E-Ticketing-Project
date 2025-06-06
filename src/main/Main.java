@@ -50,7 +50,7 @@ public class Main {
                     break;
 
                 case 3:
-                    MainService.anuleazaBilet(scanner, user);
+                    MainService.anuleazaBilet(scanner, user, biletService, eventService);
                     break;
                 case 4:
                     MainService.afiseazaBileteUser(user);

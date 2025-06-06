@@ -2,6 +2,9 @@ package services;
 
 import classes.User;
 import db.DatabaseContext;
+import db.GenericReadService;
+import db.GenericWriteService;
+import helpers.ResultSetMapper;
 import services.Audit.AuditService;
 
 import java.sql.*;
@@ -9,61 +12,59 @@ import java.util.Optional;
 
 public class UserService {
 
-    public AuditService auditService = AuditService.getInstance();
+    private final AuditService auditService = AuditService.getInstance();
+    private final GenericReadService readSvc;
+    private final GenericWriteService writeSvc;
+
+    private static UserService instance;
+    public UserService() throws SQLException {
+        this.readSvc = GenericReadService.getInstance();
+        this.writeSvc = GenericWriteService.getInstance();
+    }
+    public static synchronized UserService getInstance() throws SQLException {
+        if (instance == null) {
+            instance = new UserService();
+        }
+        return instance;
+    }
 
     public void create(User user) throws SQLException {
         String sql = "INSERT INTO users (nume, varsta, pass, role) VALUES (?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, user.getNume());
-            stmt.setInt(2, user.getVarsta());
-            stmt.setString(3, user.getPass());
-            stmt.setString(4, user.getRole());
-            
-            stmt.executeUpdate();
-
-            auditService.audit("CREATE", "User");
-        }
+        writeSvc.create(sql,
+                user.getNume(),
+                user.getVarsta(),
+                user.getPass(),
+                user.getRole()
+        );
+        auditService.audit("CREATE", "User");
     }
 
     public Optional<User> read(String nume) throws SQLException {
         String sql = "SELECT * FROM users WHERE nume = ?";
 
-        try (Connection conn = DatabaseContext.getReadContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, nume);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                User user = new User(
-                    rs.getString("nume"),
-                    rs.getInt("varsta"),
-                    rs.getString("pass"),
-                    rs.getString("role"));
-                
-                auditService.audit("READ", "User");
+        ResultSetMapper<User> mapper = (ResultSet rs) -> new User(
+                rs.getString("nume"),
+                rs.getInt("varsta"),
+                rs.getString("pass"),
+                rs.getString("role")
+        );
 
-                return Optional.of(user);
-            }
-        }
-        return Optional.empty();
+        Optional<User> maybe = readSvc.readOne(sql, mapper, nume);
+        maybe.ifPresent(u -> {
+            auditService.audit("READ", "User");
+        });
+        return maybe;
     }
 
     public void update(User user) throws SQLException {
         String sql = "UPDATE users SET varsta = ?, pass = ?, role = ? WHERE nume = ?";
-
-        try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, user.getVarsta());
-            stmt.setString(2, user.getPass());
-            stmt.setString(3, user.getRole());
-            stmt.setString(4, user.getNume());
-
-            stmt.executeUpdate();
-            auditService.audit("UPDATE", "User");
-        }
+        writeSvc.update(sql,
+                user.getVarsta(),
+                user.getPass(),
+                user.getRole(),
+                user.getNume()
+        );
+        auditService.audit("UPDATE", "User");
     }
 
     public void delete(String nume) throws SQLException {

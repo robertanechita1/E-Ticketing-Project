@@ -3,6 +3,9 @@ package services;
 import classes.Artist;
 import classes.Event;
 import db.DatabaseContext;
+import db.GenericReadService;
+import db.GenericWriteService;
+import helpers.ResultSetMapper;
 import services.Audit.AuditService;
 
 import java.sql.*;
@@ -12,120 +15,120 @@ import java.util.Optional;
 
 public class EventService {
 
-    public AuditService auditService = AuditService.getInstance();
+    private final AuditService auditService = AuditService.getInstance();
+    private final GenericReadService readSvc;
+    private final GenericWriteService writeSvc;
+
+    private static EventService instance;
+    public EventService() throws SQLException {
+        this.readSvc = GenericReadService.getInstance();
+        this.writeSvc = GenericWriteService.getInstance();
+    }
+    public static synchronized EventService getInstance() throws SQLException {
+        if (instance == null) {
+            instance = new EventService();
+        }
+        return instance;
+    }
 
     public void create(Event event) throws SQLException {
-        String sql = "INSERT INTO events (nume, data, descriere, locatie, numar_bilete_disponibile, capacitate_totala, organizator, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, event.getNume());
-            stmt.setDate(2, Date.valueOf(event.getData()));
-            stmt.setString(3, event.getDescriere());
-            stmt.setString(4, event.getLocatie());
-            stmt.setInt(5, event.getNumarBileteDisponibile());
-            stmt.setInt(6, event.getCapacitateTotala());
-            stmt.setString(7, event.getOrganizator());
-            stmt.setDouble(8, event.getPrice());
-        
-            stmt.executeUpdate();
-            auditService.audit("CREATE", "Event");
-        }
+        String sql = "INSERT INTO events (nume, data, descriere, locatie, numar_bilete_disponibile, capacitate_totala, organizator, price) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        writeSvc.create(sql,
+                event.getNume(),
+                Date.valueOf(event.getData()),
+                event.getDescriere(),
+                event.getLocatie(),
+                event.getNumarBileteDisponibile(),
+                event.getCapacitateTotala(),
+                event.getOrganizator(),
+                event.getPrice()
+        );
+        auditService.audit("CREATE", "Event");
     }
 
     public Optional<Event> read(String nume) throws SQLException {
         String sql = "SELECT * FROM events WHERE nume = ?";
-
-        try (Connection conn = DatabaseContext.getReadContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, nume);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                Event event = new Event(
+        ResultSetMapper<Event> mapper = (ResultSet rs) -> {
+            Event ev = new Event(
                     rs.getString("nume"),
                     rs.getDate("data").toLocalDate(),
                     rs.getString("descriere"),
                     rs.getString("locatie"),
+                    rs.getInt("numar_bilete_disponibile"),
                     rs.getInt("capacitate_totala"),
                     rs.getString("organizator"),
                     rs.getDouble("price")
-                );
-                event.setNumarBileteDisponibile(rs.getInt("numar_bilete_disponibile"));
+            );
+            return ev;
+        };
 
-                auditService.audit("READ", "Event");
-
-                return Optional.of(event);
-            }
-        }
-        return Optional.empty();
+        Optional<Event> maybe = readSvc.readOne(sql, mapper, nume);
+        maybe.ifPresent(e -> {
+            auditService.audit("READ", "Event");
+        });
+        return maybe;
     }
 
     public List<Event> readAll() throws SQLException {
         String sql = "SELECT * FROM events";
-        List<Event> events = new ArrayList<>();
-
-        try (Connection conn = DatabaseContext.getReadContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                Event event = new Event(
-                        rs.getString("nume"),
-                        rs.getDate("data").toLocalDate(),
-                        rs.getString("descriere"),
-                        rs.getString("locatie"),
-                        rs.getInt("capacitate_totala"),
-                        rs.getString("organizator"),
-                        rs.getDouble("price")
-                );
-                event.setNumarBileteDisponibile(rs.getInt("numar_bilete_disponibile"));
-                events.add(event);
-            }
-
-            auditService.audit("READ_ALL", "Event");
-        }
-
-        return events;
+        ResultSetMapper<Event> mapper = (ResultSet rs) -> new Event(
+                rs.getString("nume"),
+                rs.getDate("data").toLocalDate(),
+                rs.getString("descriere"),
+                rs.getString("locatie"),
+                rs.getInt("numar_bilete_disponibile"),
+                rs.getInt("capacitate_totala"),
+                rs.getString("organizator"),
+                rs.getDouble("price")
+        );
+        List<Event> lista = readSvc.readAll(sql, mapper);
+        auditService.audit("READ_ALL", "Event");
+        return lista;
     }
 
     public void update(Event event) throws SQLException {
         String sql = "UPDATE events SET data = ?, descriere = ?, locatie = ?, numar_bilete_disponibile = ?, capacitate_totala = ?, organizator = ?, price = ? WHERE nume = ?";
-        
-        try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDate(1, Date.valueOf(event.getData()));
-            stmt.setString(2, event.getDescriere());
-            stmt.setString(3, event.getLocatie());
-            stmt.setInt(4, event.getNumarBileteDisponibile());
-            stmt.setInt(5, event.getCapacitateTotala());
-            stmt.setString(6, event.getOrganizator());
-            stmt.setDouble(7, event.getPrice());
-            stmt.setString(8, event.getNume());
-
-            auditService.audit("UPDATE", "Event");
-            stmt.executeUpdate();
-        }
+        writeSvc.update(sql,
+                Date.valueOf(event.getData()),
+                event.getDescriere(),
+                event.getLocatie(),
+                event.getNumarBileteDisponibile(),
+                event.getCapacitateTotala(),
+                event.getOrganizator(),
+                event.getPrice(),
+                event.getNume()
+        );
+        auditService.audit("UPDATE", "Event");
     }
 
     public void delete(String nume) throws SQLException {
+        String sqlBilete = "DELETE FROM bilete WHERE event_name = ?";
         String sqlEventArtists = "DELETE FROM event_artists WHERE event_nume = ?";
         String sqlEvent = "DELETE FROM events WHERE nume = ?";
 
         try (Connection conn = DatabaseContext.getWriteContext().getConnection();
+             PreparedStatement stmtBilete = conn.prepareStatement(sqlBilete);
              PreparedStatement stmtEventArtists = conn.prepareStatement(sqlEventArtists);
              PreparedStatement stmtEvent = conn.prepareStatement(sqlEvent)) {
 
+            // sterg biletele de la acest event
+            stmtBilete.setString(1, nume);
+            stmtBilete.executeUpdate();
+            auditService.audit("DELETE", "bilete pentru eveniment: " + nume);
+
+            // sterg legaturi artist-eveniment
             stmtEventArtists.setString(1, nume);
             stmtEventArtists.executeUpdate();
             auditService.audit("DELETE", "event_artists pentru eveniment: " + nume);
 
+            // sterg eveniment
             stmtEvent.setString(1, nume);
             stmtEvent.executeUpdate();
             auditService.audit("DELETE", "Event");
         }
     }
+
 
 
     public List<Artist> getArtistiPentruEveniment(String numeEveniment) throws SQLException {

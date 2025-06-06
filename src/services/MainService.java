@@ -79,50 +79,36 @@ public class MainService {
 
 
 
-    public static void anuleazaBilet(Scanner scanner, User user) {
-        BiletService biletService =  new BiletService();
-        EventService eventService =  new EventService();
+    public static void anuleazaBilet(Scanner scanner, User user, BiletService biletService, EventService eventService) throws SQLException {
+        try {
+            System.out.print("De la ce eveniment doriti sa anulati biletul?\n");
+            String eventName = scanner.next();
 
-        System.out.print("De la ce eveniment doriti sa anulati biletul?\n");
-        String eventName = scanner.next();
+            Optional<Bilet> bilet = biletService.readByCumparatorSiEvent(user.getNume(), eventName);
 
-        try (Connection conn = DatabaseContext.getReadContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bilete WHERE cumparator = ? AND event_name = ?")) {
+            if (bilet.isPresent()) {
+                Bilet b = bilet.get();
+                System.out.print(b.esteValid() + "dupa:");
+                b.setValid(false); // anulez biletul
+                System.out.print(b.esteValid());
+                biletService.update(b);
 
-            stmt.setString(1, user.getNume());
-            stmt.setString(2, eventName);
-            ResultSet rs = stmt.executeQuery();
+                Optional<Event> event = eventService.read(eventName);
 
-            boolean gasit = false;
-
-            while (rs.next()) {
-                Bilet bilet = new Bilet(
-                        rs.getString("event_name"),
-                        rs.getString("cumparator"),
-                        rs.getString("tip"),
-                        rs.getString("plata")
-                );
-                bilet.setCodUnic(rs.getString("cod_unic"));
-                bilet.setValid(false); // anulez biletul
-
-                biletService.update(bilet); // actualizare în DB
-                gasit = true;
-            }
-
-            if (gasit) {
-                Optional<Event> optEvent = eventService.read(eventName);
-                if (optEvent.isPresent()) {
-                    Event e = optEvent.get();
+                if (event.isPresent()) {
+                    Event e = event.get();
                     e.setNumarBileteDisponibile(e.getNumarBileteDisponibile() + 1);
                     eventService.update(e);
                 }
 
                 System.out.println("Biletul pentru evenimentul " + eventName + " a fost anulat.");
-            } else {
+            }
+            else {
                 System.out.println("Utilizatorul nu are un bilet valid la acest eveniment.");
             }
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             System.out.println("A apărut o eroare la anularea biletului.");
         }
@@ -275,7 +261,7 @@ public class MainService {
 
 
 
-    public static User LoggedOut(Scanner scanner) {
+    public static User LoggedOut(Scanner scanner) throws SQLException {
         UserService userService = new UserService();
         System.out.print("Bine ați venit! Ce acțiune doriți să efectuați?\n\n1. Să intru în contul meu.\n2. Să îmi creez un cont.\n\nIntrodu numărul acțiunii: ");
         int option = 0;
@@ -479,6 +465,7 @@ public class MainService {
 
             Notificare notificare = new Notificare(mesaj, from, to);
             notificari.add(notificare);
+            Collections.sort(notificari);
 
             System.out.println("Notificare trimisa cu succes catre " + to.getNume());
         }
@@ -577,7 +564,7 @@ public class MainService {
         System.out.print("Spune numele artistului: ");
         scanner.nextLine();
         String nume = scanner.nextLine();
-        Optional<Artist>artist = artistService.read(nume);
+        Optional<Artist>artist = artistService.readByNume(nume);
         if(artist.isPresent()) {
             Artist a = artist.get();
             System.out.println(a.getNume());

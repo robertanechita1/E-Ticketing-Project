@@ -29,6 +29,18 @@ public class Event implements IEvent {
         this.price = price;
     }
 
+    public Event(String nume, LocalDate data, String descriere, String locatie, int bilete,
+                 int capacitateTotala, String organizator, double price) {
+        this.nume = nume;
+        this.data = data;
+        this.descriere = descriere;
+        this.locatie = locatie;
+        this.capacitateTotala = capacitateTotala;
+        this.numarBileteDisponibile = bilete;
+        this.organizator = organizator;
+        this.price = price;
+    }
+
     @Override
     public String getNume() {
         return nume;

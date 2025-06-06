@@ -3,6 +3,9 @@ package services;
 import classes.Artist;
 import classes.Event;
 import db.DatabaseContext;
+import db.GenericReadService;
+import db.GenericWriteService;
+import helpers.ResultSetMapper;
 import services.Audit.AuditService;
 
 import java.sql.*;
@@ -12,56 +15,66 @@ import java.util.Optional;
 
 public class ArtistService {
 
-    public AuditService auditService = AuditService.getInstance();
+    private final AuditService auditService = AuditService.getInstance();
+    private final GenericReadService readSvc;
+    private final GenericWriteService writeSvc;
+
+    private static ArtistService instance;
+    public ArtistService() throws SQLException {
+        this.readSvc = GenericReadService.getInstance();
+        this.writeSvc = GenericWriteService.getInstance();
+    }
+    public static synchronized ArtistService getInstance() throws SQLException {
+        if (instance == null) {
+            instance = new ArtistService();
+        }
+        return instance;
+    }
 
     public void create(Artist artist) throws SQLException {
         String sql = "INSERT INTO artists (nume, descriere, views) VALUES (?, ?, ?)";
-
-        try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, artist.getNume());
-            stmt.setString(2, artist.getDescriere());
-            stmt.setDouble(3, artist.getViews());
-
-            stmt.executeUpdate();
-            auditService.audit("CREATE", "Artist");
-        }
+        writeSvc.create(sql,
+                artist.getNume(),
+                artist.getDescriere(),
+                artist.getViews()
+        );
+        auditService.audit("CREATE", "Artist");
     }
 
-    public Optional<Artist> read(String nume) throws SQLException {
+    public Optional<Artist> readByNume(String nume) throws SQLException {
         String sql = "SELECT * FROM artists WHERE nume = ?";
+        ResultSetMapper<Artist> mapper = (ResultSet rs) -> new Artist(
+                rs.getString("nume"),
+                rs.getString("descriere"),
+                rs.getDouble("views")
+        );
+        Optional<Artist> maybe = readSvc.readOne(sql, mapper, nume);
+        maybe.ifPresent(a -> {
+            auditService.audit("READ", "Artist");
+        });
+        return maybe;
+    }
 
-        try (Connection conn = DatabaseContext.getReadContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, nume);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                Artist artist = new Artist(
-                        rs.getString("nume"),
-                        rs.getString("descriere"),
-                        rs.getDouble("views")
-                );
-                auditService.audit("READ", "Artist");
-                return Optional.of(artist);
-            }
-        }
-
-        return Optional.empty();
+    public List<Artist> readAll() throws SQLException {
+        String sql = "SELECT * FROM artists";
+        ResultSetMapper<Artist> mapper = (ResultSet rs) -> new Artist(
+                rs.getString("nume"),
+                rs.getString("descriere"),
+                rs.getDouble("views")
+        );
+        List<Artist> lista = readSvc.readAll(sql, mapper);
+        auditService.audit("READ_ALL", "Artist");
+        return lista;
     }
 
     public void update(Artist artist) throws SQLException {
         String sql = "UPDATE artists SET descriere = ?, views = ? WHERE nume = ?";
-
-        try (Connection conn = DatabaseContext.getWriteContext().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, artist.getDescriere());
-            stmt.setDouble(2, artist.getViews());
-            stmt.setString(3, artist.getNume());
-
-            stmt.executeUpdate();
-            auditService.audit("UPDATE", "Artist");
-        }
+        writeSvc.update(sql,
+                artist.getDescriere(),
+                artist.getViews(),
+                artist.getNume()
+        );
+        auditService.audit("UPDATE", "Artist");
     }
 
     public void delete(String nume) throws SQLException {
